@@ -18,9 +18,9 @@ Then open http://localhost:3000. Set `PORT` to use a different port.
 
 ## How to use it
 
-- **Swipe right** (or press →, or tap the heart) to like a photo.
-- **Swipe left** (or press ←, or tap the ✕) to pass.
-- **Undo** (or press Backspace) brings back the last photo.
+- **Swipe right** (or press →, or tap 🔥) to like a photo.
+- **Swipe left** (or press ←, or tap ❌) to pass.
+- **↩️ Undo** (or press Backspace) brings back the last photo.
 - **Liked** shows every photo you've liked. Tap one to see it full screen.
 - **Boards** lets you add or remove Pinterest boards. Paste a link like `https://www.pinterest.com/user/board-name/`.
 

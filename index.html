@@ -23,25 +23,27 @@
   <main>
     <!-- Swipe view -->
     <section class="view is-active" id="view-swipe" aria-label="Swipe photos">
-      <div class="deck" id="deck" aria-live="polite"></div>
+      <div class="stage">
+        <div class="deck" id="deck" aria-live="polite"></div>
 
-      <div class="status" id="status" hidden>
-        <p id="status-text"></p>
-        <button class="btn" id="status-action" hidden></button>
-      </div>
+        <div class="status" id="status" hidden>
+          <p id="status-text"></p>
+          <button class="btn" id="status-action" hidden></button>
+        </div>
 
-      <div class="controls">
-        <button class="round nope" id="btn-nope" aria-label="Pass (left arrow)" title="Pass (←)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-        <button class="round undo" id="btn-undo" aria-label="Undo (backspace)" title="Undo (Backspace)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>
-        </button>
-        <button class="round like" id="btn-like" aria-label="Like (right arrow)" title="Like (→)">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>
-        </button>
+        <!-- Floats over the bottom of the photo -->
+        <div class="controls">
+          <button class="round nope" id="btn-nope" aria-label="No (left arrow)" title="No (←)">
+            <span class="emoji" aria-hidden="true">❌</span>
+          </button>
+          <button class="round undo" id="btn-undo" aria-label="Undo (backspace)" title="Undo (Backspace)">
+            <span class="emoji" aria-hidden="true">↩️</span>
+          </button>
+          <button class="round like" id="btn-like" aria-label="Yes (right arrow)" title="Yes (→)">
+            <span class="emoji" aria-hidden="true">🔥</span>
+          </button>
+        </div>
       </div>
-      <p class="hint">Drag the photo, or use ← and →</p>
     </section>
 
     <!-- Liked view -->
@@ -90,8 +92,8 @@
   <template id="card-template">
     <article class="card">
       <img alt="" draggable="false">
-      <span class="stamp stamp-like">Like</span>
-      <span class="stamp stamp-nope">Nope</span>
+      <span class="stamp stamp-like" aria-hidden="true">🔥</span>
+      <span class="stamp stamp-nope" aria-hidden="true">❌</span>
     </article>
   </template>
 

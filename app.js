@@ -155,14 +155,12 @@
     toastEl.classList.remove('is-visible');
     void toastEl.offsetWidth;
     toastEl.classList.add('is-visible');
-    document.body.classList.add('toast-open');
     toastTimer = setTimeout(hideToast, action ? 4000 : 1400);
   }
 
   function hideToast() {
     clearTimeout(toastTimer);
     toastEl.classList.remove('is-visible');
-    document.body.classList.remove('toast-open');
   }
 
   function preload(pins) {
@@ -405,10 +403,10 @@
 
     pulse(action === 'like' ? btnLike : btnNope, 'pop');
     if (action === 'like') {
-      toast('Added to Liked');
+      toast('🔥 Added to Liked');
       pulse(likedCount, 'bump');
     } else {
-      toast('Passed');
+      toast('❌ Passed');
     }
 
     state.seen.add(pin.id);
@@ -441,7 +439,7 @@
       return;
     }
     pulse(btnUndo, 'spin');
-    toast('Undone');
+    toast('↩️ Undone');
     state.seen.delete(last.pin.id);
     saveSeen();
     if (last.action === 'like') {
