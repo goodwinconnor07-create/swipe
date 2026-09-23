@@ -34,13 +34,13 @@
         <!-- Floats over the bottom of the photo -->
         <div class="controls">
           <button class="round nope" id="btn-nope" aria-label="No (left arrow)" title="No (←)">
-            <img class="emoji" src="emoji/no.png" alt="" draggable="false">
+            <span class="emoji" aria-hidden="true">❌</span>
           </button>
           <button class="round undo" id="btn-undo" aria-label="Undo (backspace)" title="Undo (Backspace)">
-            <img class="emoji" src="emoji/undo.png" alt="" draggable="false">
+            <span class="emoji" aria-hidden="true">⏪</span>
           </button>
           <button class="round like" id="btn-like" aria-label="Yes (right arrow)" title="Yes (→)">
-            <img class="emoji" src="emoji/yes.png" alt="" draggable="false">
+            <span class="emoji" aria-hidden="true">🔥</span>
           </button>
         </div>
       </div>
@@ -85,7 +85,6 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite">
-    <img class="toast-icon" id="toast-icon" alt="" hidden>
     <span id="toast-text"></span>
     <button class="toast-action" id="toast-action" hidden></button>
   </div>
@@ -93,8 +92,8 @@
   <template id="card-template">
     <article class="card">
       <img alt="" draggable="false">
-      <span class="stamp stamp-like" aria-hidden="true"><img src="emoji/yes.png" alt="" draggable="false"></span>
-      <span class="stamp stamp-nope" aria-hidden="true"><img src="emoji/no.png" alt="" draggable="false"></span>
+      <span class="stamp stamp-like" aria-hidden="true">🔥</span>
+      <span class="stamp stamp-nope" aria-hidden="true">❌</span>
     </article>
   </template>
 

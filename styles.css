@@ -211,12 +211,8 @@ h2 {
   opacity: 0;
   background: var(--white);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-}
-
-.stamp img {
-  width: 44px;
-  height: 44px;
-  display: block;
+  font-size: 44px;
+  line-height: 44px;
 }
 
 .stamp-like { left: 24px; }
@@ -279,15 +275,15 @@ h2 {
 .round:disabled { opacity: 0.35; cursor: default; }
 
 .emoji {
-  display: block;
-  width: 32px;
-  height: 32px;
+  display: inline-block;
+  font-size: 28px;
+  line-height: 32px;
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.round.undo .emoji { width: 26px; height: 26px; }
+.round.undo .emoji { font-size: 22px; line-height: 26px; }
 
 /* Played when a swipe or undo happens, whether from a button, a key or a drag. */
 .round.pop { animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
@@ -433,13 +429,6 @@ h2 {
   transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
-.toast-icon {
-  width: 22px;
-  height: 22px;
-  margin-right: -6px;
-}
-
-.toast-icon[hidden] { display: none; }
 
 .toast.is-visible {
   opacity: 1;

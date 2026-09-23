@@ -134,17 +134,12 @@
 
   const toastEl = $('toast');
   const toastText = $('toast-text');
-  const toastIcon = $('toast-icon');
   const toastAction = $('toast-action');
   let toastTimer = null;
 
-  // Shows a short message. Pass an action to add a button, like Undo,
-  // and an icon name ('yes', 'no' or 'undo') to show one of the emoji images.
-  function toast(message, action, icon) {
+  function toast(message, action) {
     clearTimeout(toastTimer);
     toastText.textContent = message;
-    if (icon) toastIcon.src = `emoji/${icon}.png`;
-    toastIcon.hidden = !icon;
     if (action) {
       toastAction.hidden = false;
       toastAction.textContent = action.label;
@@ -407,10 +402,10 @@
 
     pulse(action === 'like' ? btnLike : btnNope, 'pop');
     if (action === 'like') {
-      toast('Added to Liked', null, 'yes');
+      toast('Added to Liked 🔥');
       pulse(likedCount, 'bump');
     } else {
-      toast('Passed', null, 'no');
+      toast('Passed ❌');
     }
 
     state.seen.add(pin.id);
@@ -443,7 +438,7 @@
       return;
     }
     pulse(btnUndo, 'rewind');
-    toast('Undone', null, 'undo');
+    toast('Undone ⏪');
     state.seen.delete(last.pin.id);
     saveSeen();
     if (last.action === 'like') {

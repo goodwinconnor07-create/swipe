@@ -47,7 +47,6 @@ To add a board to the hosted version, add it to `boards.json`. Adding boards fro
 ```
 index.html          The app page
 app.js, styles.css  The app's script and styles
-emoji/              Emoji images for the yes, no and undo buttons
 boards.json         Pinterest boards to pull photos from
 pins.json           Saved photos for GitHub Pages (generated)
 server.js           Local server with a live /api/pins route
