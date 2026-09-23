@@ -21,7 +21,7 @@ Then open http://localhost:3000. Set `PORT` to use a different port.
 - **Swipe right** (or press →, or tap the heart) to like a photo.
 - **Swipe left** (or press ←, or tap the ✕) to pass.
 - **Undo** (or press Backspace) brings back the last photo.
-- **Liked** shows every photo you've liked. Tap one to open it on Pinterest.
+- **Liked** shows every photo you've liked. Tap one to see it full screen.
 - **Boards** lets you add or remove Pinterest boards. Paste a link like `https://www.pinterest.com/user/board-name/`.
 
 Photos you've already swiped won't show up again. Use "Show seen photos again" on the Boards tab to start over.

@@ -34,7 +34,7 @@ test('parseFeed pulls pins out of a Pinterest RSS feed', () => {
   const xml = `<?xml version="1.0" encoding="utf-8"?><rss version="2.0"><channel>
     <title>Nature</title>
     <item>
-      <title>Misty forest</title>
+      <title>Misty   forest</title>
       <link>https://www.pinterest.com/pin/111/</link>
       <description>&lt;a href=&quot;https://www.pinterest.com/pin/111/&quot;&gt;&lt;img src=&quot;https://i.pinimg.com/236x/aa/bb/cc/one.jpg&quot;&gt;&lt;/a&gt;Misty forest at dawn</description>
       <guid>https://www.pinterest.com/pin/111/</guid>
@@ -42,7 +42,7 @@ test('parseFeed pulls pins out of a Pinterest RSS feed', () => {
     <item>
       <title></title>
       <link>https://www.pinterest.com/pin/222/</link>
-      <description>&lt;img src=&quot;https://i.pinimg.com/236x/dd/ee/ff/two.jpg&quot;&gt;Lake &amp;amp; mountains</description>
+      <description>&lt;img src=&quot;https://i.pinimg.com/236x/dd/ee/ff/two.jpg&quot;&gt;Lake &amp;amp; mountains %u2022 dawn</description>
       <guid>https://www.pinterest.com/pin/222/</guid>
     </item>
     <item>
@@ -62,9 +62,9 @@ test('parseFeed pulls pins out of a Pinterest RSS feed', () => {
     link: 'https://www.pinterest.com/pin/111/',
     board: 'user/nature',
   });
-  // Falls back to the caption when the title is empty.
+  // Falls back to the caption when the title is empty, and cleans up escapes.
   assert.strictEqual(pins[1].id, '222');
-  assert.strictEqual(pins[1].title, 'Lake & mountains');
+  assert.strictEqual(pins[1].title, 'Lake & mountains \u2022 dawn');
 });
 
 test('fetchBoards merges boards, drops duplicates and reports failures', async () => {

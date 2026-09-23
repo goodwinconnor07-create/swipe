@@ -215,9 +215,6 @@
     img.alt = pin.title || 'Nature photo';
     img.addEventListener('error', () => dropBrokenCard(pin.id), { once: true });
     card.querySelector('.card-title').textContent = pin.title || '';
-    const link = card.querySelector('.card-link');
-    if (pin.link) link.href = pin.link;
-    else link.remove();
     return card;
   }
 
@@ -292,7 +289,6 @@
 
     function onDown(e) {
       if (e.button !== undefined && e.button !== 0) return;
-      if (e.target.closest('a')) return; // let the Pinterest link work
       if (card.classList.contains('is-leaving')) return;
       pointerId = e.pointerId;
       card.setPointerCapture(pointerId);
@@ -405,16 +401,15 @@
 
     likedGrid.replaceChildren(...state.liked.map((pin) => {
       const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.href = pin.link || pin.image;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.title = pin.title || '';
+      const open = document.createElement('button');
+      open.className = 'open';
+      open.setAttribute('aria-label', 'View photo');
+      open.addEventListener('click', () => openViewer(pin));
       const img = document.createElement('img');
       img.src = pin.image;
       img.alt = pin.title || 'Liked nature photo';
       img.loading = 'lazy';
-      a.appendChild(img);
+      open.appendChild(img);
 
       const remove = document.createElement('button');
       remove.className = 'remove';
@@ -426,10 +421,29 @@
         renderLiked();
       });
 
-      li.append(a, remove);
+      li.append(open, remove);
       return li;
     }));
   }
+
+  // ---- Full-screen viewer for liked photos
+
+  const viewer = $('viewer');
+  const viewerImg = $('viewer-img');
+
+  function openViewer(pin) {
+    viewerImg.src = pin.image;
+    viewerImg.alt = pin.title || 'Liked nature photo';
+    viewer.hidden = false;
+    $('viewer-close').focus();
+  }
+
+  function closeViewer() {
+    viewer.hidden = true;
+    viewerImg.removeAttribute('src');
+  }
+
+  viewer.addEventListener('click', closeViewer);
 
   // ---- Boards view
 
@@ -464,12 +478,7 @@
     boardList.replaceChildren(...boards.map((board) => {
       const li = document.createElement('li');
       const info = document.createElement('div');
-      const a = document.createElement('a');
-      a.href = `https://www.pinterest.com/${board}/`;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = board;
-      info.appendChild(a);
+      info.append(board);
       if (state.boardErrors[board]) {
         const err = document.createElement('span');
         err.className = 'board-error';
@@ -547,6 +556,10 @@
   btnUndo.addEventListener('click', undo);
 
   document.addEventListener('keydown', (e) => {
+    if (!viewer.hidden) {
+      if (e.key === 'Escape') closeViewer();
+      return;
+    }
     if (currentView !== 'swipe') return;
     if (e.target.closest('input, textarea')) return;
     if (e.key === 'ArrowRight') { e.preventDefault(); swipe('like'); }

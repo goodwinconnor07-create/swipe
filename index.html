@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Nature Swipe</title>
-  <meta name="theme-color" content="#1f3a2e">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -47,7 +47,7 @@
     <!-- Liked view -->
     <section class="view" id="view-liked" aria-label="Liked photos">
       <div class="liked-head">
-        <h2>Liked photos</h2>
+        <h2>Liked</h2>
         <button class="btn ghost" id="clear-liked">Clear all</button>
       </div>
       <p class="empty" id="liked-empty">Nothing yet. Swipe right on a photo you like.</p>
@@ -56,7 +56,7 @@
 
     <!-- Boards view -->
     <section class="view" id="view-boards" aria-label="Pinterest boards">
-      <h2>Pinterest boards</h2>
+      <h2>Boards</h2>
       <p class="muted">Photos come from these public Pinterest boards.</p>
       <form class="add-board" id="add-board">
         <input id="board-input" type="text" placeholder="https://www.pinterest.com/user/board/" autocomplete="off" aria-label="Board link">
@@ -77,14 +77,18 @@
     </section>
   </main>
 
+  <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Photo">
+    <button class="btn ghost viewer-close" id="viewer-close">Done</button>
+    <img id="viewer-img" alt="">
+  </div>
+
   <template id="card-template">
     <article class="card">
       <img alt="" draggable="false">
-      <span class="stamp stamp-like">LIKE</span>
-      <span class="stamp stamp-nope">NOPE</span>
+      <span class="stamp stamp-like">Like</span>
+      <span class="stamp stamp-nope">Nope</span>
       <div class="card-info">
         <p class="card-title"></p>
-        <a class="card-link" target="_blank" rel="noopener">View on Pinterest</a>
       </div>
     </article>
   </template>
