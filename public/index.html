@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nature Swipe</title>
+  <meta name="theme-color" content="#1f3a2e">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="logo">Nature Swipe</h1>
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-view="swipe" role="tab" aria-selected="true">Swipe</button>
+      <button class="tab" data-view="liked" role="tab" aria-selected="false">
+        Liked <span class="badge" id="liked-count">0</span>
+      </button>
+      <button class="tab" data-view="boards" role="tab" aria-selected="false">Boards</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Swipe view -->
+    <section class="view is-active" id="view-swipe" aria-label="Swipe photos">
+      <div class="deck" id="deck" aria-live="polite"></div>
+
+      <div class="status" id="status" hidden>
+        <p id="status-text"></p>
+        <button class="btn" id="status-action" hidden></button>
+      </div>
+
+      <div class="controls">
+        <button class="round nope" id="btn-nope" aria-label="Pass (left arrow)" title="Pass (←)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <button class="round undo" id="btn-undo" aria-label="Undo (backspace)" title="Undo (Backspace)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>
+        </button>
+        <button class="round like" id="btn-like" aria-label="Like (right arrow)" title="Like (→)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>
+        </button>
+      </div>
+      <p class="hint">Drag the photo, or use ← and →</p>
+    </section>
+
+    <!-- Liked view -->
+    <section class="view" id="view-liked" aria-label="Liked photos">
+      <div class="liked-head">
+        <h2>Liked photos</h2>
+        <button class="btn ghost" id="clear-liked">Clear all</button>
+      </div>
+      <p class="empty" id="liked-empty">Nothing yet. Swipe right on a photo you like.</p>
+      <ul class="grid" id="liked-grid"></ul>
+    </section>
+
+    <!-- Boards view -->
+    <section class="view" id="view-boards" aria-label="Pinterest boards">
+      <h2>Pinterest boards</h2>
+      <p class="muted">Photos come from these public boards. Paste a board link like
+        <code>pinterest.com/user/board-name</code> to add one.</p>
+      <form class="add-board" id="add-board">
+        <input id="board-input" type="text" placeholder="https://www.pinterest.com/user/board/" autocomplete="off" aria-label="Board link">
+        <button class="btn" type="submit">Add</button>
+      </form>
+      <p class="form-error" id="board-error" hidden></p>
+      <ul class="board-list" id="board-list"></ul>
+      <div class="board-actions">
+        <button class="btn ghost" id="reset-boards">Reset to defaults</button>
+        <button class="btn ghost" id="reset-seen">Show seen photos again</button>
+      </div>
+    </section>
+  </main>
+
+  <template id="card-template">
+    <article class="card">
+      <img alt="" draggable="false">
+      <span class="stamp stamp-like">LIKE</span>
+      <span class="stamp stamp-nope">NOPE</span>
+      <div class="card-info">
+        <p class="card-title"></p>
+        <a class="card-link" target="_blank" rel="noopener">View on Pinterest</a>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
