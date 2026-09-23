@@ -21,6 +21,9 @@ const STATIC_FILES = {
   '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
   '/icon.svg': ['icon.svg', 'image/svg+xml'],
   '/pins.json': ['pins.json', 'application/json; charset=utf-8'],
+  '/emoji/yes.png': ['emoji/yes.png', 'image/png'],
+  '/emoji/no.png': ['emoji/no.png', 'image/png'],
+  '/emoji/undo.png': ['emoji/undo.png', 'image/png'],
 };
 
 const cache = new Map();
