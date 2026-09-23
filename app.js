@@ -109,6 +109,62 @@
     }
   }
 
+  // ---- Feedback
+
+  // Replays a CSS animation class on an element, even if it's already running.
+  function pulse(el, className) {
+    if (!el) return;
+    el.classList.remove(className);
+    void el.offsetWidth; // restart the animation
+    el.classList.add(className);
+    el.addEventListener('animationend', () => el.classList.remove(className), { once: true });
+  }
+
+  // Runs fn once the element's animation ends, with a timer in case it never fires.
+  function afterAnimation(el, fn, fallbackMs = 400) {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      fn();
+    };
+    el.addEventListener('animationend', finish, { once: true });
+    setTimeout(finish, fallbackMs);
+  }
+
+  const toastEl = $('toast');
+  const toastText = $('toast-text');
+  const toastAction = $('toast-action');
+  let toastTimer = null;
+
+  // Shows a short message at the bottom. Pass an action to add a button, like Undo.
+  function toast(message, action) {
+    clearTimeout(toastTimer);
+    toastText.textContent = message;
+    if (action) {
+      toastAction.hidden = false;
+      toastAction.textContent = action.label;
+      toastAction.onclick = () => {
+        hideToast();
+        action.run();
+      };
+    } else {
+      toastAction.hidden = true;
+      toastAction.onclick = null;
+    }
+    toastEl.classList.remove('is-visible');
+    void toastEl.offsetWidth;
+    toastEl.classList.add('is-visible');
+    document.body.classList.add('toast-open');
+    toastTimer = setTimeout(hideToast, action ? 4000 : 1400);
+  }
+
+  function hideToast() {
+    clearTimeout(toastTimer);
+    toastEl.classList.remove('is-visible');
+    document.body.classList.remove('toast-open');
+  }
+
   function preload(pins) {
     pins.forEach((pin) => {
       const img = new Image();
@@ -214,6 +270,8 @@
     img.src = pin.image;
     img.alt = pin.title || 'Nature photo';
     img.addEventListener('error', () => dropBrokenCard(pin.id), { once: true });
+    card.classList.add('is-loading');
+    img.addEventListener('load', () => card.classList.remove('is-loading'), { once: true });
     card.querySelector('.card-title').textContent = pin.title || '';
     return card;
   }
@@ -298,13 +356,14 @@
       dy = 0;
       startTime = performance.now();
       card.classList.add('is-dragging');
+      card.style.transform = 'scale(1.02)';
     }
 
     function onMove(e) {
       if (e.pointerId !== pointerId) return;
       dx = e.clientX - startX;
       dy = e.clientY - startY;
-      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg)`;
+      card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx / 18}deg) scale(1.02)`;
       const strength = Math.min(Math.abs(dx) / 110, 1);
       likeStamp.style.opacity = dx > 0 ? strength : 0;
       nopeStamp.style.opacity = dx < 0 ? strength : 0;
@@ -337,9 +396,21 @@
 
   function swipe(action, dy = 0) {
     const card = topCard();
-    if (!card || state.loading) return;
+    if (state.loading) return;
+    if (!card) {
+      toast('No more photos');
+      return;
+    }
     const pin = state.queue.shift();
     if (!pin) return;
+
+    pulse(action === 'like' ? btnLike : btnNope, 'pop');
+    if (action === 'like') {
+      toast('Added to Liked');
+      pulse(likedCount, 'bump');
+    } else {
+      toast('Passed');
+    }
 
     state.seen.add(pin.id);
     saveSeen();
@@ -366,13 +437,19 @@
 
   function undo() {
     const last = state.history.pop();
-    if (!last) return;
+    if (!last) {
+      toast('Nothing to undo');
+      return;
+    }
+    pulse(btnUndo, 'spin');
+    toast('Undone');
     state.seen.delete(last.pin.id);
     saveSeen();
     if (last.action === 'like') {
       state.liked = state.liked.filter((p) => p.id !== last.pin.id);
       save(STORAGE.liked, state.liked);
       renderLiked();
+      pulse(likedCount, 'bump');
     }
     state.queue.unshift(last.pin);
     deck.querySelectorAll('.is-leaving').forEach((el) => el.remove());
@@ -394,10 +471,14 @@
 
   // ---- Liked view
 
-  function renderLiked() {
+  function updateLikedMeta() {
     likedCount.textContent = String(state.liked.length);
     likedEmpty.hidden = state.liked.length > 0;
     $('clear-liked').hidden = state.liked.length === 0;
+  }
+
+  function renderLiked() {
+    updateLikedMeta();
 
     likedGrid.replaceChildren(...state.liked.map((pin) => {
       const li = document.createElement('li');
@@ -416,9 +497,28 @@
       remove.setAttribute('aria-label', 'Remove from liked');
       remove.textContent = '×';
       remove.addEventListener('click', () => {
-        state.liked = state.liked.filter((p) => p.id !== pin.id);
+        const index = state.liked.findIndex((p) => p.id === pin.id);
+        if (index === -1) return;
+        state.liked.splice(index, 1);
         save(STORAGE.liked, state.liked);
-        renderLiked();
+        pulse(likedCount, 'bump');
+        toast('Removed from Liked', {
+          label: 'Undo',
+          run: () => {
+            if (state.liked.some((p) => p.id === pin.id)) return;
+            state.liked.splice(Math.min(index, state.liked.length), 0, pin);
+            save(STORAGE.liked, state.liked);
+            renderLiked();
+            pulse(likedCount, 'bump');
+          },
+        });
+        // Fade the photo out, then take it out of the grid.
+        updateLikedMeta();
+        li.classList.add('is-removing');
+        afterAnimation(li, () => {
+          li.remove();
+          updateLikedMeta();
+        });
       });
 
       li.append(open, remove);
@@ -439,8 +539,13 @@
   }
 
   function closeViewer() {
-    viewer.hidden = true;
-    viewerImg.removeAttribute('src');
+    if (viewer.hidden || viewer.classList.contains('is-closing')) return;
+    viewer.classList.add('is-closing');
+    setTimeout(() => {
+      viewer.hidden = true;
+      viewer.classList.remove('is-closing');
+      viewerImg.removeAttribute('src');
+    }, 180);
   }
 
   viewer.addEventListener('click', closeViewer);
@@ -466,17 +571,18 @@
     }
   }
 
-  function setBoards(boards) {
+  function setBoards(boards, highlight) {
     state.boards = boards;
     save(STORAGE.boards, boards);
     state.boardsChanged = true;
-    renderBoards();
+    renderBoards(highlight);
   }
 
-  function renderBoards() {
+  function renderBoards(highlight) {
     const boards = activeBoards();
     boardList.replaceChildren(...boards.map((board) => {
       const li = document.createElement('li');
+      if (board === highlight) li.classList.add('is-new');
       const info = document.createElement('div');
       info.append(board);
       if (state.boardErrors[board]) {
@@ -489,7 +595,15 @@
       remove.setAttribute('aria-label', `Remove ${board}`);
       remove.textContent = '×';
       remove.addEventListener('click', () => {
-        setBoards(activeBoards().filter((b) => b !== board));
+        const before = activeBoards();
+        li.classList.add('is-removing');
+        afterAnimation(li, () => {
+          if (li.isConnected) setBoards(before.filter((b) => b !== board));
+        });
+        toast('Board removed', {
+          label: 'Undo',
+          run: () => setBoards(before),
+        });
       });
       li.append(info, remove);
       return li;
@@ -502,11 +616,18 @@
     if (!board) {
       boardError.textContent = 'That doesn’t look like a board link. Try pinterest.com/user/board-name';
       boardError.hidden = false;
+      pulse($('add-board'), 'shake');
       return;
     }
     boardError.hidden = true;
     boardInput.value = '';
-    if (!activeBoards().includes(board)) setBoards([...activeBoards(), board]);
+    if (activeBoards().includes(board)) {
+      toast('Already added');
+      renderBoards(board);
+      return;
+    }
+    setBoards([...activeBoards(), board], board);
+    toast('Board added');
   });
 
   $('reset-boards').addEventListener('click', () => {
@@ -514,18 +635,32 @@
     try { localStorage.removeItem(STORAGE.boards); } catch { /* ignore */ }
     state.boardsChanged = true;
     renderBoards();
+    toast('Boards reset');
   });
 
   $('reset-seen').addEventListener('click', () => {
     resetSeen();
     showView('swipe');
+    toast('Showing all photos again');
   });
 
   $('clear-liked').addEventListener('click', () => {
-    if (!confirm('Remove all liked photos?')) return;
+    const removed = state.liked;
+    if (!removed.length) return;
     state.liked = [];
     save(STORAGE.liked, state.liked);
-    renderLiked();
+    likedGrid.querySelectorAll('li').forEach((li) => li.classList.add('is-removing'));
+    setTimeout(renderLiked, 220);
+    pulse(likedCount, 'bump');
+    toast(`Cleared ${removed.length} ${removed.length === 1 ? 'photo' : 'photos'}`, {
+      label: 'Undo',
+      run: () => {
+        state.liked = removed;
+        save(STORAGE.liked, state.liked);
+        renderLiked();
+        pulse(likedCount, 'bump');
+      },
+    });
   });
 
   // ---- Tabs
@@ -533,6 +668,7 @@
   let currentView = 'swipe';
 
   function showView(name) {
+    if (name === currentView) return;
     currentView = name;
     document.querySelectorAll('.tab').forEach((tab) => {
       const active = tab.dataset.view === name;

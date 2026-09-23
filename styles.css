@@ -34,6 +34,27 @@ button {
   color: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.15s ease, background 0.2s ease, color 0.2s ease;
+}
+
+/* Every button shrinks a little while it's held down, then springs back. */
+button:not(:disabled):active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--black);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .tab:not(.is-active):hover { background: var(--gray-2); }
+  .btn:hover { opacity: 0.85; }
+  .round:not(:disabled):hover { transform: scale(1.06); }
+  .board-list button:hover,
+  .grid .remove:hover { color: var(--black); }
 }
 
 /* Top bar */
@@ -75,7 +96,6 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .tab.is-active {
@@ -84,25 +104,34 @@ button {
 }
 
 .badge {
+  display: inline-block;
   font-size: 12px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
 }
 
+.badge.bump { animation: bump 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
+
 main {
   flex: 1;
   width: 100%;
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 20px 28px;
+  padding: 0 20px calc(16px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
 .view { display: none; }
-.view.is-active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.view.is-active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  animation: view-in 0.25s ease;
+}
 
 h2 {
   margin: 16px 0 8px;
@@ -123,7 +152,7 @@ h2 {
   max-height: 640px;
   width: 100%;
   max-width: 420px;
-  margin: 12px auto 0;
+  margin: 12px auto 22px; /* room for the cards peeking out underneath */
 }
 
 .card {
@@ -142,7 +171,7 @@ h2 {
 }
 
 .card:not(.is-dragging) { transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.card.is-dragging { cursor: grabbing; }
+.card.is-dragging { cursor: grabbing; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08); }
 .card.is-leaving { transition: transform 0.35s ease, opacity 0.35s ease; pointer-events: none; }
 
 /* Cards under the top one sit slightly smaller so the stack is visible. */
@@ -155,7 +184,19 @@ h2 {
   object-fit: cover;
   display: block;
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
+
+/* While a photo loads, the card shimmers and the photo fades in when ready. */
+.card.is-loading {
+  background: linear-gradient(100deg, var(--gray-1) 40%, var(--white) 50%, var(--gray-1) 60%) 0 0 / 250% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+.card.is-loading img,
+.card.is-loading .card-info { opacity: 0; }
+
+.card-info { transition: opacity 0.3s ease; }
 
 .card-info {
   position: absolute;
@@ -222,7 +263,7 @@ h2 {
   justify-content: center;
   align-items: center;
   gap: 24px;
-  margin-top: 28px;
+  margin-top: 8px;
 }
 
 .round {
@@ -233,10 +274,15 @@ h2 {
   background: var(--white);
   display: grid;
   place-items: center;
-  transition: transform 0.15s ease, opacity 0.2s ease;
 }
 
-.round:active { transform: scale(0.9); }
+.round:not(:disabled):active { transform: scale(0.88); }
+
+/* Played when a swipe or undo happens, whether from a button, a key or a drag. */
+.round.pop { animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.round.pop svg { animation: pop-icon 0.4s ease; }
+.round.spin svg { animation: spin 0.45s cubic-bezier(0.3, 1.2, 0.5, 1); }
+
 .round.like { background: var(--black); border-color: var(--black); }
 .round.undo { width: 44px; height: 44px; }
 
@@ -254,13 +300,21 @@ h2 {
 .round.undo svg { width: 18px; height: 18px; stroke-width: 2.2; }
 .round:disabled { opacity: 0.3; cursor: default; }
 
+/* The hint row doubles as the spot where messages appear, so they never cover the buttons. */
 .hint {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   font-size: 13px;
   font-weight: 500;
   color: var(--gray-3);
-  margin: 16px 0 0;
+  margin: 12px 0 0;
+  transition: opacity 0.2s ease;
 }
+
+body.toast-open .hint { opacity: 0; }
 
 /* Text buttons */
 .btn {
@@ -277,8 +331,6 @@ h2 {
   background: var(--gray-1);
   color: var(--black);
 }
-
-.btn:active { opacity: 0.7; }
 
 /* Liked grid */
 .liked-head {
@@ -304,7 +356,17 @@ h2 {
   overflow: hidden;
   aspect-ratio: 3 / 4;
   background: var(--gray-1);
+  animation: item-in 0.3s ease;
 }
+
+.grid li.is-removing,
+.board-list li.is-removing {
+  animation: item-out 0.22s ease forwards;
+  pointer-events: none;
+}
+
+.grid .open:active { transform: scale(0.97); }
+.grid .open:active img { opacity: 0.85; }
 
 .grid .open {
   display: block;
@@ -353,6 +415,8 @@ h2 {
 }
 
 .viewer[hidden] { display: none; }
+.viewer.is-closing { animation: fade-out 0.18s ease forwards; }
+.viewer img { animation: zoom-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
 .viewer img {
   max-width: 100%;
@@ -367,9 +431,121 @@ h2 {
   right: 16px;
 }
 
+/* Pop-up message */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100% - 32px);
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: var(--black);
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translate(-50%, 16px) scale(0.96);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+
+.toast-action {
+  border: 0;
+  background: none;
+  color: var(--white);
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes zoom-in {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pop-icon {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.6); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -150% 0; }
+}
+
+@keyframes item-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes item-out {
+  to { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes highlight {
+  from { background: var(--gray-2); }
+  to { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Boards */
@@ -396,6 +572,8 @@ h2 {
 .add-board input:focus { box-shadow: 0 0 0 2px var(--black); }
 
 .form-error { color: var(--black); font-weight: 600; margin: 8px 0 0; font-size: 14px; }
+
+.shake { animation: shake 0.4s ease; }
 
 .static-note {
   background: var(--gray-1);
@@ -430,6 +608,7 @@ h2 {
 }
 
 .board-list li + li { border-top: 1px solid var(--gray-2); }
+.board-list li.is-new { animation: highlight 1.2s ease; }
 
 .board-list .board-error {
   display: block;
@@ -466,6 +645,6 @@ code {
 }
 
 @media (max-height: 700px) {
-  .hint { display: none; }
-  .controls { margin-top: 18px; }
+  .hint { font-size: 0; margin-top: 4px; }
+  .controls { margin-top: 8px; }
 }
