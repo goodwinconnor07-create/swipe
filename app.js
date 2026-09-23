@@ -272,7 +272,6 @@
     img.addEventListener('error', () => dropBrokenCard(pin.id), { once: true });
     card.classList.add('is-loading');
     img.addEventListener('load', () => card.classList.remove('is-loading'), { once: true });
-    card.querySelector('.card-title').textContent = pin.title || '';
     return card;
   }
 
