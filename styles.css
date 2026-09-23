@@ -199,7 +199,7 @@ h2 {
 
 .card.is-loading > img { opacity: 0; }
 
-/* Emoji badge that fades in as you drag */
+/* Badge that fades in as you drag */
 .stamp {
   position: absolute;
   top: 24px;
@@ -211,12 +211,9 @@ h2 {
   opacity: 0;
   background: var(--white);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
-}
-
-.stamp img {
-  width: 44px;
-  height: 44px;
-  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--black);
 }
 
 .stamp-like { left: 24px; }
@@ -259,40 +256,54 @@ h2 {
 }
 
 .round {
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  border: 0;
+  border: 1px solid var(--gray-2);
   background: var(--white);
   display: grid;
   place-items: center;
   padding: 0;
 }
 
+.round.like {
+  background: var(--black);
+  border-color: var(--black);
+}
+
 .round.undo {
-  width: 46px;
-  height: 46px;
-  background: transparent;
+  width: 44px;
+  height: 44px;
+}
+
+.round svg {
+  width: 26px;
+  height: 26px;
+  fill: none;
+  stroke: var(--black);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.round.like svg {
+  stroke: var(--white);
+  fill: var(--white);
+}
+
+.round.undo svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
 }
 
 .round:not(:disabled):active { transform: scale(0.86); }
 .round:disabled { opacity: 0.35; cursor: default; }
 
-.emoji {
-  display: block;
-  width: 32px;
-  height: 32px;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.round.undo .emoji { width: 26px; height: 26px; }
-
 /* Played when a swipe or undo happens, whether from a button, a key or a drag. */
 .round.pop { animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
-.round.pop .emoji { animation: pop-icon 0.4s ease; }
-.round.rewind .emoji { animation: rewind 0.45s cubic-bezier(0.3, 1.2, 0.5, 1); }
+.round.pop svg { animation: pop-icon 0.4s ease; }
+.round.rewind svg { animation: rewind 0.45s cubic-bezier(0.3, 1.2, 0.5, 1); }
 
 /* Text buttons */
 .btn {
@@ -432,14 +443,6 @@ h2 {
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
-
-.toast-icon {
-  width: 22px;
-  height: 22px;
-  margin-right: -6px;
-}
-
-.toast-icon[hidden] { display: none; }
 
 .toast.is-visible {
   opacity: 1;

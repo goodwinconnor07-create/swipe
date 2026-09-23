@@ -33,14 +33,14 @@
 
         <!-- Floats over the bottom of the photo -->
         <div class="controls">
-          <button class="round nope" id="btn-nope" aria-label="No (left arrow)" title="No (←)">
-            <img class="emoji" src="emoji/no.png" alt="" draggable="false">
+          <button class="round nope" id="btn-nope" aria-label="Pass (left arrow)" title="Pass (←)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
           <button class="round undo" id="btn-undo" aria-label="Undo (backspace)" title="Undo (Backspace)">
-            <img class="emoji" src="emoji/undo.png" alt="" draggable="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>
           </button>
-          <button class="round like" id="btn-like" aria-label="Yes (right arrow)" title="Yes (→)">
-            <img class="emoji" src="emoji/yes.png" alt="" draggable="false">
+          <button class="round like" id="btn-like" aria-label="Like (right arrow)" title="Like (→)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>
           </button>
         </div>
       </div>
@@ -85,7 +85,6 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite">
-    <img class="toast-icon" id="toast-icon" alt="" hidden>
     <span id="toast-text"></span>
     <button class="toast-action" id="toast-action" hidden></button>
   </div>
@@ -93,8 +92,8 @@
   <template id="card-template">
     <article class="card">
       <img alt="" draggable="false">
-      <span class="stamp stamp-like" aria-hidden="true"><img src="emoji/yes.png" alt="" draggable="false"></span>
-      <span class="stamp stamp-nope" aria-hidden="true"><img src="emoji/no.png" alt="" draggable="false"></span>
+      <span class="stamp stamp-like" aria-hidden="true">Like</span>
+      <span class="stamp stamp-nope" aria-hidden="true">Nope</span>
     </article>
   </template>
 
