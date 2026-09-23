@@ -20,6 +20,18 @@ async function main() {
     process.exit(1);
   }
 
+  // Skip the write when nothing changed, so the daily Action doesn't make empty commits.
+  try {
+    const old = JSON.parse(fs.readFileSync(OUTPUT, 'utf8'));
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    if (same(old.boards, boards) && same(old.pins, pins) && same(old.errors, errors)) {
+      console.log('No new pins, pins.json is up to date.');
+      return;
+    }
+  } catch {
+    // No existing file or it's unreadable. Write a fresh one.
+  }
+
   const output = { updated: new Date().toISOString(), boards, pins, errors };
   fs.writeFileSync(OUTPUT, JSON.stringify(output, null, 2) + '\n');
   console.log(`Wrote ${pins.length} pins from ${boards.length} boards to pins.json`);
