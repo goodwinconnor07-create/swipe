@@ -57,13 +57,18 @@
     <!-- Boards view -->
     <section class="view" id="view-boards" aria-label="Pinterest boards">
       <h2>Pinterest boards</h2>
-      <p class="muted">Photos come from these public boards. Paste a board link like
-        <code>pinterest.com/user/board-name</code> to add one.</p>
+      <p class="muted">Photos come from these public Pinterest boards.</p>
       <form class="add-board" id="add-board">
         <input id="board-input" type="text" placeholder="https://www.pinterest.com/user/board/" autocomplete="off" aria-label="Board link">
         <button class="btn" type="submit">Add</button>
       </form>
       <p class="form-error" id="board-error" hidden></p>
+      <div class="static-note" id="static-note" hidden>
+        <p>This hosted version uses a saved list of photos. To add a board, put it in
+          <code>boards.json</code> in the GitHub repo. A daily update pulls in its photos.
+          <a id="static-repo-link" target="_blank" rel="noopener" hidden>Edit boards.json</a></p>
+        <p class="muted" id="static-updated"></p>
+      </div>
       <ul class="board-list" id="board-list"></ul>
       <div class="board-actions">
         <button class="btn ghost" id="reset-boards">Reset to defaults</button>

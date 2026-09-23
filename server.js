@@ -1,54 +1,40 @@
-// Small static server plus one API route that reads Pinterest board RSS feeds.
+// Small static server plus an API route that reads Pinterest board RSS feeds live.
 // The browser can't fetch those feeds itself because of CORS, so this does it.
+// On GitHub Pages there's no server, so the app falls back to pins.json instead.
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { normalizeBoard, parseFeed, feedUrl } = require('./lib/pinterest');
+const { normalizeBoard, fetchBoard, fetchBoards } = require('./lib/pinterest');
 
 const PORT = Number(process.env.PORT) || 3000;
-const PUBLIC_DIR = path.join(__dirname, 'public');
+const ROOT = __dirname;
 const CACHE_MS = 10 * 60 * 1000;
 const MAX_BOARDS = 20;
+const DEFAULT_BOARDS = require('./boards.json');
 
-const DEFAULT_BOARDS = [
-  'bcr8tive/nature-photography',
-  'pin4ever/beautiful-nature-photography-and-images',
-  'paulchongart/nature-landscape-photography',
-  'mandydv98/nature-pictures',
-  'iristhefinder/minimalist-nature-photography',
-  'angeliny1/nature-photography',
-  'cgproprints/landscape-photography-inspiration',
-  'usemuzli/landscape-photography',
-];
-
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json; charset=utf-8',
-  '.ico': 'image/x-icon',
+// Only these files are served, so the rest of the repo stays private.
+const STATIC_FILES = {
+  '/': ['index.html', 'text/html; charset=utf-8'],
+  '/index.html': ['index.html', 'text/html; charset=utf-8'],
+  '/styles.css': ['styles.css', 'text/css; charset=utf-8'],
+  '/app.js': ['app.js', 'text/javascript; charset=utf-8'],
+  '/icon.svg': ['icon.svg', 'image/svg+xml'],
+  '/pins.json': ['pins.json', 'application/json; charset=utf-8'],
 };
 
 const cache = new Map();
 
-async function fetchBoard(board) {
+async function cachedFetchBoard(board) {
   const cached = cache.get(board);
   if (cached && Date.now() - cached.time < CACHE_MS) return cached.pins;
-
-  const res = await fetch(feedUrl(board), {
-    headers: { 'User-Agent': 'Mozilla/5.0 (nature-swipe)' },
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!res.ok) throw new Error(`Pinterest returned ${res.status}`);
-  const pins = parseFeed(await res.text(), board);
+  const pins = await fetchBoard(board);
   cache.set(board, { time: Date.now(), pins });
   return pins;
 }
 
 function sendJson(res, status, body) {
-  res.writeHead(status, { 'Content-Type': MIME_TYPES['.json'], 'Cache-Control': 'no-store' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(body));
 }
 
@@ -58,42 +44,22 @@ async function handlePins(url, res) {
   const boards = [...new Set(raw.map(normalizeBoard).filter(Boolean))].slice(0, MAX_BOARDS);
   if (boards.length === 0) return sendJson(res, 400, { error: 'No valid boards given.' });
 
-  const results = await Promise.allSettled(boards.map(fetchBoard));
-  const seen = new Set();
-  const pins = [];
-  const errors = [];
-
-  results.forEach((result, i) => {
-    if (result.status === 'rejected') {
-      errors.push({ board: boards[i], error: result.reason.message });
-      return;
-    }
-    if (result.value.length === 0) {
-      errors.push({ board: boards[i], error: 'No pins found (is the board public?)' });
-    }
-    for (const pin of result.value) {
-      if (seen.has(pin.id)) continue;
-      seen.add(pin.id);
-      pins.push(pin);
-    }
-  });
-
+  const { pins, errors } = await fetchBoards(boards, cachedFetchBoard);
   sendJson(res, 200, { boards, pins, errors });
 }
 
 function serveStatic(url, res) {
-  const pathname = decodeURIComponent(url.pathname);
-  const file = path.normalize(path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname));
-  if (!file.startsWith(PUBLIC_DIR + path.sep)) {
-    res.writeHead(403);
-    return res.end('Forbidden');
+  const entry = STATIC_FILES[url.pathname];
+  if (!entry) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('Not found');
   }
-  fs.readFile(file, (err, data) => {
+  fs.readFile(path.join(ROOT, entry[0]), (err, data) => {
     if (err) {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       return res.end('Not found');
     }
-    res.writeHead(200, { 'Content-Type': MIME_TYPES[path.extname(file)] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': entry[1] });
     res.end(data);
   });
 }

@@ -1,0 +1,39 @@
+name: Update pins
+
+# GitHub Pages can't run the Node server, so this refreshes pins.json from
+# the boards in boards.json and commits it. Pages then redeploys the site.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - boards.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-pins
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/fetch-pins.js
+      - name: Commit pins.json if it changed
+        run: |
+          if git diff --quiet -- pins.json; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pins.json
+          git commit -m "Update pins.json"
+          git push

@@ -2,7 +2,11 @@
 
 Swipe right or left on nature photos pulled from public Pinterest boards. Right swipes are saved to a Liked gallery.
 
-## Run it
+## Use it online
+
+It's hosted on GitHub Pages at https://goodwinconnor07-create.github.io/swipe/
+
+## Run it on your computer
 
 You need [Node.js](https://nodejs.org) 18 or newer. There's nothing to install.
 
@@ -30,11 +34,23 @@ Every public Pinterest board has an RSS feed at `https://www.pinterest.com/<user
 
 Each feed only has a board's most recent 25 or so pins, so adding more boards gives you more photos to swipe.
 
+### On GitHub Pages
+
+GitHub Pages only hosts files, so it can't run `server.js`. Instead, the photos are saved in `pins.json`, and the page reads that file when it can't reach the server. The boards it uses are listed in `boards.json`.
+
+A GitHub Action (`.github/workflows/update-pins.yml`) refreshes `pins.json` every day, and whenever `boards.json` changes. You can also run it by hand from the Actions tab, or run `npm run fetch-pins` locally and commit the result.
+
+To add a board to the hosted version, add it to `boards.json`. Adding boards from the Boards tab only works with `npm start`.
+
 ## Project layout
 
 ```
-server.js           Static file server and /api/pins route
-lib/pinterest.js    Board link parsing and RSS feed parsing
-public/             The app (HTML, CSS, JS)
+index.html          The app page
+app.js, styles.css  The app's script and styles
+boards.json         Pinterest boards to pull photos from
+pins.json           Saved photos for GitHub Pages (generated)
+server.js           Local server with a live /api/pins route
+lib/pinterest.js    Board link parsing, RSS parsing and fetching
+scripts/            fetch-pins.js, which writes pins.json
 test/               Tests, run with `npm test`
 ```

@@ -41,6 +41,8 @@
     boardErrors: {},
     loading: false,
     boardsChanged: false,
+    staticMode: null, // true on GitHub Pages, false with the Node server
+    staticData: null,
   };
 
   // ---- Elements
@@ -116,6 +118,43 @@
 
   // ---- Loading photos
 
+  // Works out whether the live server is running. On GitHub Pages it isn't,
+  // so the app reads the pre-fetched pins.json instead.
+  async function detectMode() {
+    try {
+      const res = await fetch('api/default-boards');
+      if (res.ok) {
+        state.defaultBoards = (await res.json()).boards;
+        state.staticMode = false;
+        return;
+      }
+    } catch {
+      // No server. Fall through to pins.json.
+    }
+    const res = await fetch('pins.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('pins.json not found');
+    state.staticData = await res.json();
+    state.defaultBoards = state.staticData.boards;
+    state.staticMode = true;
+    renderStaticNote();
+  }
+
+  async function fetchPins(boards) {
+    if (!state.staticMode) {
+      const res = await fetch(`api/pins?boards=${encodeURIComponent(boards.join(','))}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+    const data = state.staticData;
+    const wanted = new Set(boards);
+    const errors = data.errors.filter((e) => wanted.has(e.board));
+    boards
+      .filter((board) => !data.boards.includes(board))
+      .forEach((board) => errors.push({ board, error: 'Not in pins.json yet' }));
+    return { pins: data.pins.filter((pin) => wanted.has(pin.board)), errors };
+  }
+
   async function loadPins() {
     state.loading = true;
     state.boardsChanged = false;
@@ -124,10 +163,7 @@
     updateButtons();
 
     try {
-      if (!state.defaultBoards.length) {
-        const res = await fetch('/api/default-boards');
-        state.defaultBoards = (await res.json()).boards;
-      }
+      if (state.staticMode === null) await detectMode();
       const boards = activeBoards();
       if (!boards.length) {
         state.queue = [];
@@ -140,9 +176,7 @@
         return;
       }
 
-      const res = await fetch(`/api/pins?boards=${encodeURIComponent(boards.join(','))}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Request failed');
+      const data = await fetchPins(boards);
 
       state.boardErrors = {};
       data.errors.forEach((e) => { state.boardErrors[e.board] = e.error; });
@@ -398,6 +432,25 @@
   }
 
   // ---- Boards view
+
+  // On GitHub Pages there's no server to read new boards, so explain how to add them.
+  function renderStaticNote() {
+    $('add-board').hidden = true;
+    const note = $('static-note');
+    note.hidden = false;
+    const updated = new Date(state.staticData.updated);
+    if (!Number.isNaN(updated.getTime())) {
+      $('static-updated').textContent = `Photos last updated ${updated.toLocaleDateString()}.`;
+    }
+    // Pages URLs look like https://<user>.github.io/<repo>/
+    const match = location.hostname.match(/^([^.]+)\.github\.io$/);
+    const repo = location.pathname.split('/').filter(Boolean)[0];
+    if (match && repo) {
+      const link = $('static-repo-link');
+      link.href = `https://github.com/${match[1]}/${repo}/blob/HEAD/boards.json`;
+      link.hidden = false;
+    }
+  }
 
   function setBoards(boards) {
     state.boards = boards;

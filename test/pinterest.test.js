@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { normalizeBoard, decodeEntities, parseFeed, upgradeImage } = require('../lib/pinterest');
+const { normalizeBoard, decodeEntities, parseFeed, upgradeImage, fetchBoards } = require('../lib/pinterest');
 
 test('normalizeBoard accepts the usual ways of writing a board', () => {
   assert.strictEqual(normalizeBoard('user/board'), 'user/board');
@@ -65,4 +65,21 @@ test('parseFeed pulls pins out of a Pinterest RSS feed', () => {
   // Falls back to the caption when the title is empty.
   assert.strictEqual(pins[1].id, '222');
   assert.strictEqual(pins[1].title, 'Lake & mountains');
+});
+
+test('fetchBoards merges boards, drops duplicates and reports failures', async () => {
+  const pin = (id, board) => ({ id, title: '', image: `https://i.pinimg.com/736x/${id}.jpg`, link: '', board });
+  const fake = async (board) => {
+    if (board === 'a/one') return [pin('1', board), pin('2', board)];
+    if (board === 'b/two') return [pin('2', board), pin('3', board)];
+    if (board === 'c/empty') return [];
+    throw new Error('Pinterest returned 404');
+  };
+
+  const { pins, errors } = await fetchBoards(['a/one', 'b/two', 'c/empty', 'd/broken'], fake);
+  assert.deepStrictEqual(pins.map((p) => p.id), ['1', '2', '3']);
+  assert.deepStrictEqual(errors, [
+    { board: 'c/empty', error: 'No pins found (is the board public?)' },
+    { board: 'd/broken', error: 'Pinterest returned 404' },
+  ]);
 });

@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "fetch-pins": "node scripts/fetch-pins.js"
   },
   "engines": {
     "node": ">=18"
